@@ -1,6 +1,7 @@
 plugins {
 	id 'java'
 	id 'eclipse-wtp'
+	id 'com.github.johnrengelman.shadow' version '2.0.4'
 }
 
 sourceSets {
@@ -49,6 +50,7 @@ dependencies {
  	compile "de.upb.isys:jaicore-logic"
 	compile 'de.upb.isys:hasco'
 	compile 'de.upb.isys:mlplan'
+	compile 'de.upb.isys:autofe'
 	
 	compile name: "CRCUtils"
 	compile name: "mtj"
@@ -66,5 +68,13 @@ repositories {
 	maven {
         url "http://clojars.org/repo/"
         url "https://nexus.cs.upb.de/repository/maven-releases/"
+    }
+}
+
+shadowJar {
+    manifest {
+        attributes(
+        'Main-Class': 'finance.FinanceExperimentRunner'
+        )
     }
 }
