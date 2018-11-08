@@ -4,7 +4,7 @@ import org.aeonbits.owner.Config.Sources;
 
 import jaicore.experiments.IExperimentSetConfig;
 
-@Sources({ "file:conf/financial/financial.properties" })
+@Sources({ "file:conf/experiments/financial.properties" })
 public interface FinancialConfig extends IExperimentSetConfig {
 
 	public static final String TIMEOUT = "timeout";
