@@ -1,4 +1,4 @@
-package financial;
+package runner;
 
 import java.io.File;
 import java.util.HashMap;
@@ -14,6 +14,8 @@ import autofe.db.configuration.DatabaseAutoFeConfiguration;
 import autofe.db.model.database.AbstractFeature;
 import autofe.db.util.DBUtils;
 import autofe.processor.DatabaseProcessor;
+import config.DatabaseConfig;
+import config.ConfigFactory;
 import de.upb.crc901.mlplan.multiclass.wekamlplan.MLPlanWekaClassifier;
 import de.upb.crc901.mlplan.multiclass.wekamlplan.weka.WekaMLPlanWekaClassifier;
 import jaicore.basic.SQLAdapter;
@@ -27,25 +29,32 @@ import weka.classifiers.Evaluation;
 import weka.core.Instances;
 import weka.core.converters.ArffSaver;
 
-public class FinancialExperimentRunner {
+public class DatabaseExperimentRunner {
 
 	private static Logger LOG = LoggerFactory.getLogger("EXPERIMENT");
 
 	public static void main(String[] args) {
-		FinancialConfig m = ConfigCache.getOrCreate(FinancialConfig.class);
+		String dataSetName = args[0];
+		if (dataSetName == null || dataSetName.isEmpty()) {
+			LOG.error("No data set name provided => Shutting down..");
+			System.exit(1);
+		}
+
+		Class<? extends DatabaseConfig> configClass = ConfigFactory.getExperimentConfigClass(dataSetName);
+		DatabaseConfig config = ConfigCache.getOrCreate(configClass);
 
 		ExperimentRunner runner = new ExperimentRunner(new IExperimentSetEvaluator() {
 
 			@Override
 			public IExperimentSetConfig getConfig() {
-				return m;
+				return config;
 			}
 
 			@Override
 			public void evaluate(ExperimentDBEntry experimentEntry, SQLAdapter adapter,
 					IExperimentIntermediateResultProcessor processor) throws Exception {
 				try {
-					doExperiment(experimentEntry, adapter, processor, m);
+					doExperiment(experimentEntry, adapter, processor, config);
 				} catch (Exception e) {
 					LOG.error("Experiment failed!", e);
 					throw e;
@@ -58,9 +67,9 @@ public class FinancialExperimentRunner {
 	}
 
 	private static void doExperiment(ExperimentDBEntry experimentEntry, SQLAdapter adapter,
-			IExperimentIntermediateResultProcessor processor, FinancialConfig m) throws Exception {
+			IExperimentIntermediateResultProcessor processor, DatabaseConfig config) throws Exception {
 		LOG.info("Starting experiment");
-		
+
 		// Get experiment setup
 		Map<String, String> description = experimentEntry.getExperiment().getValuesOfKeyFields();
 		int timeoutInMs = Integer.parseInt(description.get("timeout"));
@@ -72,11 +81,11 @@ public class FinancialExperimentRunner {
 		LOG.info("Setup is: timeout={}, seed={}, feFraction={}, rcPathLength={}, evalFunction={}", timeoutInMs, seed,
 				feFraction, randomCompletionPathLength, evaluationFunction);
 
-		String dbModelFile = m.getDatabaseModelFile();
-		DatabaseAutoFeConfiguration config = new DatabaseAutoFeConfiguration(randomCompletionPathLength,
+		String dbModelFile = config.getDatabaseModelFile();
+		DatabaseAutoFeConfiguration dbcConfig = new DatabaseAutoFeConfiguration(randomCompletionPathLength,
 				evaluationFunction, seed, (int) (timeoutInMs * feFraction));
 		LOG.info("Starting feature extraction..");
-		DatabaseProcessor dbProcessor = new DatabaseProcessor(config, dbModelFile);
+		DatabaseProcessor dbProcessor = new DatabaseProcessor(dbcConfig, dbModelFile);
 		dbProcessor.doFeatureSelection();
 		LOG.info("Finshed feature extraction..");
 
@@ -103,7 +112,7 @@ public class FinancialExperimentRunner {
 		mlplan.setTimeoutForSingleSolutionEvaluation(15);
 		mlplan.setPortionOfDataForPhase2(.3f);
 		mlplan.buildClassifier(split.get(0));
-		mlplan.setNumCPUs(m.getNumberOfCPUs());
+		mlplan.setNumCPUs(config.getNumberOfCPUs());
 
 		Evaluation eval = new Evaluation(split.get(0));
 		eval.evaluateModel(mlplan, split.get(1));

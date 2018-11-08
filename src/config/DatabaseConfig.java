@@ -1,11 +1,8 @@
-package financial;
-
-import org.aeonbits.owner.Config.Sources;
+package config;
 
 import jaicore.experiments.IExperimentSetConfig;
 
-@Sources({ "file:conf/experiments/financial.properties" })
-public interface FinancialConfig extends IExperimentSetConfig {
+public abstract interface DatabaseConfig extends IExperimentSetConfig {
 
 	public static final String TIMEOUT = "timeout";
 	public static final String SEED = "seed";
