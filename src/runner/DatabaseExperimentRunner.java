@@ -12,10 +12,9 @@ import org.slf4j.LoggerFactory;
 
 import autofe.db.configuration.DatabaseAutoFeConfiguration;
 import autofe.db.model.database.AbstractFeature;
-import autofe.db.util.DBUtils;
 import autofe.processor.DatabaseProcessor;
-import config.DatabaseConfig;
 import config.ConfigFactory;
+import config.DatabaseConfig;
 import de.upb.crc901.mlplan.multiclass.wekamlplan.MLPlanWekaClassifier;
 import de.upb.crc901.mlplan.multiclass.wekamlplan.weka.WekaMLPlanWekaClassifier;
 import jaicore.basic.SQLAdapter;
